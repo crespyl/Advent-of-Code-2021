@@ -29,20 +29,20 @@ class Test < MiniTest::Test
 end
 
 def line_points(a, b)
-  points = []
+  points = [a]
   cur_x, cur_y = a
 
   until cur_x == b[0] && cur_y == b[1]
-    points << [cur_x, cur_y]
-
     cur_x += 1 if a[0] < b[0]
     cur_x -= 1 if a[0] > b[0]
 
     cur_y += 1 if a[1] < b[1]
     cur_y -= 1 if a[1] > b[1]
+
+    points << [cur_x, cur_y]
   end
 
-  points << b
+  points
 end
 
 def print_map(map)

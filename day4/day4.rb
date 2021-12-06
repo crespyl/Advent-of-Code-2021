@@ -69,18 +69,17 @@ end
 
 def compute_p1(input)
   numbers = input
-              .lines
-              .first
-              .chomp
-              .split(',')
-              .map(&:to_i)
+            .lines
+            .first
+            .chomp
+            .split(',')
+            .map(&:to_i)
 
   boards = input
-             .split("\n\n")
-             .drop(1)
-             .map { |l| l.split("\n")
-                         .map { _1.split(' ').map(&:to_i) } }
-             .map { Board.new(_1) }
+           .split("\n\n")
+           .drop(1)
+           .map { |l| l.split("\n").map { _1.split(' ').map(&:to_i) } }
+           .map { Board.new(_1) }
 
   winner = nil
   number = nil
@@ -97,18 +96,17 @@ end
 
 def compute_p2(input)
   numbers = input
-              .lines
-              .first
-              .chomp
-              .split(',')
-              .map(&:to_i)
+            .lines
+            .first
+            .chomp
+            .split(',')
+            .map(&:to_i)
 
   boards = input
-             .split("\n\n")
-             .drop(1)
-             .map { |l| l.split("\n")
-                         .map { _1.split(' ').map(&:to_i) } }
-             .map { Board.new(_1) }
+           .split("\n\n")
+           .drop(1)
+           .map { |l| l.split("\n").map { _1.split(' ').map(&:to_i) } }
+           .map { Board.new(_1) }
 
   last_board = nil
   number = nil
