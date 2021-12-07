@@ -21,25 +21,21 @@ end
 
 def compute_p1(input)
   numbers = input.split(',').map(&:to_i)
-  best_fuel_use = 9999999999999
-  numbers.max.times do |tgt|
+  (0..numbers.max).reduce(1/0.0) do |best, tgt|
     total = numbers
-              .map { |v| (v-tgt).abs }
+              .map { (_1 - tgt).abs }
               .sum
 
-    best_fuel_use = total if total < best_fuel_use
+    total < best ? total : best
   end
-
-  best_fuel_use
 end
 
 def compute_p2(input)
   numbers = input.split(',').map(&:to_i)
 
-  best_fuel_use = 9999999999999
   (0..numbers.max).reduce(1/0.0) do |best, tgt|
     total = numbers
-              .map { |v| diff = (v-tgt).abs; diff * (diff+1) / 2 }
+              .map { diff = (_1 - tgt).abs; diff * (diff + 1) / 2 }
               .sum
 
     total < best ? total : best
@@ -48,7 +44,7 @@ end
 
 def golf_p2(input)
   n=input.split(',').map(&:to_i)
-  (0..n.max).reduce(1/0.0){|b,t|f=n.map{|v|d=(v-t).abs;d*(d+1)/2}.sum;f<b ? f : b}
+  (0..n.max).reduce(1/0.0){|b,t|f=n.map{d=(_1-t).abs;d*(d+1)/2}.sum;f<b ? f : b}
 end
 
 if MiniTest.run

@@ -22,24 +22,25 @@ def compute_p1(input)
 
 end
 
-def compute_p2(input)
+# def compute_p2(input)
 
-end
+# end
 
-if $0 == __FILE__ && MiniTest.run
-  puts "Test case OK, running..."
+if MiniTest.run
+  puts 'Test case OK, running...'
 
-  @input = File.read(ARGV[0] || "input.txt")
+  @input = File.read(ARGV[0] || File.join(File.dirname(__FILE__), 'input.txt'))
+  do_p2 = defined?(compute_p2)
 
   Benchmark.bm do |bm|
-    bm.report("Part 1:") { @p1 = compute_p1(@input) }
-    #bm.report("Part 2:") { @p2 = compute_p2(@input) }
+    bm.report('Part 1:') { @p1 = compute_p1(@input) }
+    bm.report('Part 2:') { @p2 = compute_p2(@input) } if do_p2
   end
 
   puts "\nResults:"
-  puts "Part 1: %i" % @p1
-  #puts "Part 2: %i" % @p2
+  puts 'Part 1: %i' % @p1
+  puts 'Part 2: %i' % @p2 if do_p2
 
 else
-  puts "Test case ERR"
+  puts 'Test case ERR'
 end
