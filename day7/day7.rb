@@ -37,21 +37,24 @@ def compute_p2(input)
   numbers = input.split(',').map(&:to_i)
 
   best_fuel_use = 9999999999999
-  numbers.max.times do |tgt|
+  (0..numbers.max).reduce(1/0.0) do |best, tgt|
     total = numbers
               .map { |v| diff = (v-tgt).abs; diff * (diff+1) / 2 }
               .sum
 
-    best_fuel_use = total if total < best_fuel_use
+    total < best ? total : best
   end
+end
 
-  best_fuel_use
+def golf_p2(input)
+  n=input.split(',').map(&:to_i)
+  (0..n.max).reduce(1/0.0){|b,t|f=n.map{|v|d=(v-t).abs;d*(d+1)/2}.sum;f<b ? f : b}
 end
 
 if MiniTest.run
   puts 'Test case OK, running...'
 
-  @input = File.read(ARGV[0] || 'input.txt')
+  @input = File.read(ARGV[0] || File.join(File.dirname(__FILE__), 'input.txt'))
   do_p2 = defined?(compute_p2)
 
   Benchmark.bm do |bm|
