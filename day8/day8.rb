@@ -26,7 +26,7 @@ class Test < MiniTest::Test
   end
 
   def test_decode
-    assert_equal(5353, decode(TEST_STR_2))
+    assert_equal(5353, decode_better(TEST_STR_2))
   end
 
   def test_p2
@@ -72,6 +72,52 @@ def compute_p1(input)
     sum += (outputs.count(2) + outputs.count(4) + outputs.count(3) + outputs.count(7))
   end
   return sum
+end
+
+def decode_better(line)
+  inputs, outputs = line.split(' | ').map {_1.split(' ')}
+  inputs = inputs.map { _1.chars.sort.to_set }
+  outputs = outputs.map { _1.chars.sort.to_set }
+
+  digits = {}
+
+  digits[1] = inputs.select { _1.size == 2 }.first
+  digits[4] = inputs.select { _1.size == 4 }.first
+  digits[7] = inputs.select { _1.size == 3 }.first
+
+  digits[3] = inputs
+                .select { _1.size == 5 }
+                .select { (_1 & digits[1]).size == 2 }.first
+  digits[5] = inputs
+                .select { _1.size == 5 }
+                .select { (_1 & digits[4]).size == 3 && _1 != digits[3] }.first
+
+  digits[2] = inputs
+                .select { _1.size == 5 }
+                .select { _1 != digits[3] && _1 != digits[5] }
+
+  digits[6] = inputs
+                .select { _1.size == 6 }
+                .select { (_1 & digits[1]).size == 1 }.first
+
+  digits[9] = inputs
+                .select { _1.size == 6 }
+                .select { (_1 & digits[4]).size == 4 && _1 != digits[6] }.first
+
+  digits[2] = inputs
+                .select { _1.size == 6 }
+                .select { _1 != digits[6] && _1 != digits[9] }.first
+
+  digits[8] = inputs.select { _1.size == 7 }.first
+
+  digits[0] = inputs.reject { digits.values.include?(_1) }.first
+
+  binding.pry if digits.invert.size != 10
+  digits = digits.invert
+
+  outputs
+    .map { digits[_1] }
+    .reduce { |sum, digit| (sum * 10 + digit) }
 end
 
 def decode(line)
@@ -150,7 +196,7 @@ end
 def compute_p2(input)
   input
     .lines
-    .map {decode(_1)}
+    .map {decode_better(_1)}
     .sum
 end
 
