@@ -15,6 +15,10 @@ class Grid
     @default = default
   end
 
+  def in_bounds?(x, y)
+    x >= 0 && x < @width && y >= 0 && y < @height
+  end
+
   def get(x,y)
     if x < 0 || x >= @width || y < 0 || y >= @height
       @default
@@ -31,6 +35,14 @@ class Grid
     end
   end
 
+  def all_coords
+    (0...width).to_a.product((0...height).to_a)
+  end
+
+  def coords_where
+    all_coords.filter { |x, y| yield(@grid[y][x]) }
+  end
+
   def each_index
     height.times do |y|
       width.times do |x|
@@ -39,9 +51,19 @@ class Grid
     end
   end
 
+  def update
+    each_index do |x, y|
+      @grid[y][x] = yield(x, y, @grid[y][x])
+    end
+  end
+
   def ==(other)
     return false if other.class != Grid
     return other.grid == @grid
+  end
+
+  def all?(value)
+    return @grid.flatten.all?(value)
   end
 
   def neighbors(x,y)
@@ -64,7 +86,11 @@ class Grid
   end
 
   def count(value)
-    @grid.flatten.count(value)
+    if block_given?
+      @grid.flatten.count(&block)
+    else
+      @grid.flatten.count(value)
+    end
   end
 end
 
