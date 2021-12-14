@@ -70,8 +70,8 @@ def compute_p2(input)
     .map(&:chomp)
     .map { _1.split(',') }
     .map { _1.map(&:to_i) }
-    .each do |x,y|
-    grid[[x,y]] = true
+    .each do |x, y|
+    grid[[x, y]] = true
   end
 
   instructions.lines.each do |line|
@@ -108,9 +108,9 @@ def format_grid(grid)
   (height+1).times do |y|
     (width+1).times do |x|
       if grid[[x,y]]
-        string += '█'
+        string += '██'
       else
-        string += '░'
+        string += '░░'
       end
     end
     string += "\n"
