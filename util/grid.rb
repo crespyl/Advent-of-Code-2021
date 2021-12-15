@@ -44,10 +44,8 @@ class Grid
   end
 
   def each_index
-    height.times do |y|
-      width.times do |x|
-        yield(x,y)
-      end
+    all_coords.each do |x,y|
+      yield(x,y)
     end
   end
 
