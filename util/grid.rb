@@ -2,9 +2,9 @@
 
 class Grid
   attr_accessor :grid
-  attr_reader :width
-  attr_reader :height
-  attr_reader :default
+  attr_accessor :width
+  attr_accessor :height
+  attr_accessor :default
 
   def initialize(input, default: nil)
     @grid = input.lines

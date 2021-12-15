@@ -6,3 +6,5 @@ gem 'minitest'
 gem 'pry'
 
 gem 'rubocop'
+
+gem 'pqueue'
