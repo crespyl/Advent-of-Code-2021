@@ -1,3 +1,11 @@
+GIT
+  remote: https://github.com/deivid-rodriguez/pry-byebug.git
+  revision: bf28c9781c434b2f00a83130ec5a8a992a691183
+  specs:
+    pry-byebug (3.9.0)
+      byebug (~> 11.0)
+      pry (>= 0.13, < 0.15)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -18,12 +26,9 @@ GEM
     parser (3.0.3.2)
       ast (~> 2.4.1)
     pqueue (2.1.0)
-    pry (0.13.1)
+    pry (0.14.1)
       coderay (~> 1.1)
       method_source (~> 1.0)
-    pry-byebug (3.9.0)
-      byebug (~> 11.0)
-      pry (~> 0.13.0)
     rainbow (3.0.0)
     regexp_parser (2.2.0)
     rexml (3.2.5)
@@ -49,7 +54,7 @@ DEPENDENCIES
   httparty
   minitest
   pqueue
-  pry-byebug
+  pry-byebug!
   rubocop
 
 BUNDLED WITH
