@@ -21,9 +21,9 @@ class Test < MiniTest::Test
   end
 
   def test_p2
-    assert_equal(3, compute_p2("C200B40A82"))
+    assert_equal(3,  compute_p2("C200B40A82"))
     assert_equal(54, compute_p2("04005AC33890"))
-    assert_equal(1, compute_p2("9C0141080250320F1802104A08"))
+    assert_equal(1,  compute_p2("9C0141080250320F1802104A08"))
   end
 end
 
@@ -130,7 +130,7 @@ end
 def version_sum(packet)
   case packet[:type]
   when :literal then packet[:version]
-  when :operator then packet[:version] + packet[:packets].reduce(0) { |sum, sub_pkt| sum + version_sum(sub_pkt) }
+  when :operator then packet[:version] + packet[:packets].map { version_sum(_1) }.sum
   end
 end
 

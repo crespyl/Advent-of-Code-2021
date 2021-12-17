@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 gem 'benchmark'
 gem 'httparty'
 gem 'minitest'
-gem 'pry'
+gem 'pry-byebug'
 
 gem 'rubocop'
 
