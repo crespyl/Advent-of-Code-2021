@@ -30,22 +30,12 @@ def compute_p1(input)
   x_range = x_min..x_max
   y_range = y_min..y_max
 
-  best_x = 0
-  best_y = 0
-  best_max_y = 0
-
-  x_range.max.times do |x|
-    x_range.max.times do |y|
-      hit, max_y = test_probe(x,y, x_range, y_range)
-      if hit && max_y > best_max_y
-        best_x = x
-        best_y = y
-        best_max_y = max_y
-      end
-    end
+  ((Math.sqrt(x_min*2).floor)..x_max).to_a
+    .product((y_min..(y_min.abs-1)).to_a)
+    .reduce(0) do |best, coords|
+    hit, max_y = test_probe(coords[0], coords[1], x_range, y_range)
+    hit ? [best, max_y].max : best
   end
-
-  return best_max_y
 end
 
 def test_probe(vx, vy, x_range, y_range)
@@ -72,17 +62,12 @@ def compute_p2(input)
   x_range = x_min..x_max
   y_range = y_min..y_max
 
-  y_max = compute_p1(input)
-  hits = 0
-
-  (x_range.max+1).times do |x|
-    ((y_range.min)..y_max).each do |y|
-      hit, _max_y = test_probe(x,y, x_range, y_range)
-      hits += 1 if hit
-    end
+  ((Math.sqrt(x_min*2).floor)..x_max).to_a
+    .product((y_min..(y_min.abs-1)).to_a)
+    .reduce(0) do |sum, coords|
+    hit, _max_y = test_probe(coords[0], coords[1], x_range, y_range)
+    hit ? sum + 1 : sum
   end
-
-  return hits
 end
 
 if MiniTest.run
