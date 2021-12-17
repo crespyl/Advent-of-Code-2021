@@ -27,19 +27,22 @@ def compute_p1(input)
   matches = input.chomp.match(/target area: x=(-?\d+)..(-?\d+), y=(-?\d+)..(-?\d+)/)
   x_min, x_max, y_min, y_max = matches[1..].map(&:to_i)
 
-  x_range = x_min..x_max
-  y_range = y_min..y_max
+  # closed form solution:
+  y_min * (y_min + 1) / 2
 
-  ((Math.sqrt(x_min*2).floor)..x_max).to_a
-    .product((y_min..(y_min.abs-1)).to_a)
-    .reduce(0) do |best, coords|
-    hit, max_y = test_probe(coords[0], coords[1], x_range, y_range)
-    hit ? [best, max_y].max : best
-  end
+  # x_range = x_min..x_max
+  # y_range = y_min..y_max
+
+  # ((Math.sqrt(x_min*2).floor)..x_max).to_a
+  #   .product((y_min..(y_min.abs-1)).to_a)
+  #   .reduce(0) do |best, coords|
+  #   hit, max_y = test_probe(coords[0], coords[1], x_range, y_range)
+  #   hit ? [best, max_y].max : best
+  # end
 end
 
 def test_probe(vx, vy, x_range, y_range)
-  x,y = 0,0
+  x, y = 0, 0
   max_y = 0
   loop do
     return [true, max_y] if x_range.include?(x) && y_range.include?(y)
@@ -47,7 +50,6 @@ def test_probe(vx, vy, x_range, y_range)
 
     x += vx
     y += vy
-
     max_y = y if y > max_y
 
     vx = (vx - (vx <=> 0)) # approach 0
@@ -59,13 +61,10 @@ def compute_p2(input)
   matches = input.chomp.match(/target area: x=(-?\d+)..(-?\d+), y=(-?\d+)..(-?\d+)/)
   x_min, x_max, y_min, y_max = matches[1..].map(&:to_i)
 
-  x_range = x_min..x_max
-  y_range = y_min..y_max
-
-  ((Math.sqrt(x_min*2).floor)..x_max).to_a
-    .product((y_min..(y_min.abs-1)).to_a)
+  (Math.sqrt(x_min*2).floor..x_max).to_a
+    .product((y_min..(y_min.abs)).to_a)
     .reduce(0) do |sum, coords|
-    hit, _max_y = test_probe(coords[0], coords[1], x_range, y_range)
+    hit, _max_y = test_probe(coords[0], coords[1], x_min..x_max, y_min..y_max)
     hit ? sum + 1 : sum
   end
 end
