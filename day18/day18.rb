@@ -73,9 +73,7 @@ class Test < MiniTest::Test
   end
 end
 
-
 def add_to_first(node, value)
-  node = node.clone
   if node.is_a? Array
     [add_to_first(node[0], value), node[1]]
   else
@@ -84,7 +82,6 @@ def add_to_first(node, value)
 end
 
 def add_to_last(node, value)
-  node = node.clone
   if node.is_a? Array
     [node[0], add_to_last(node[1], value)]
   else
@@ -115,7 +112,7 @@ end
 def explode(n)
   apply_explode(n, 0)[:value]
 end
-# returns {}
+
 def apply_explode(n, depth=0)
   n = n.clone
   return {explode: false, going_left: 0, going_right: 0, value: n} unless n.is_a? Array
@@ -143,10 +140,6 @@ def apply_explode(n, depth=0)
   end
 end
 
-def simple_pair?(n)
-  return (n.is_a? Array) && (n.size == 2) && (n.all? { _1.is_a? Fixnum })
-end
-
 def magnitude(n)
   return n unless n.is_a? Array
   3 * magnitude(n[0]) + 2 * magnitude(n[1])
@@ -158,6 +151,7 @@ end
 
 def split_once(n, did_split=false)
   return [n, did_split] if did_split
+
   if (n.is_a? Fixnum) && n >= 10
     [[(n/2.0).floor, (n/2.0).ceil], true]
   elsif n.is_a? Fixnum
@@ -167,8 +161,7 @@ def split_once(n, did_split=false)
       if did_split
         node
       else
-        split_node, s = split_once(node, did_split)
-        did_split = s
+        split_node, did_split = split_once(node, did_split)
         split_node
       end
     end
@@ -187,12 +180,6 @@ end
 def compute_p1(input)
   numbers = input.lines.map(&:chomp).map { eval(_1) }
   sum = sum_list(numbers)
-
-  sum = numbers.shift
-  until numbers.empty?
-    sum = reduce(add(sum, numbers.shift))
-  end
-
   magnitude(sum)
 end
 

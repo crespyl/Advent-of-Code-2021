@@ -6,7 +6,7 @@
 require 'httparty'
 
 year = ARGV[0] || Time.now.year
-day = ARGV[1] || Time.now.day
+day = ARGV[1] || Time.now.day + 1
 root = %x( git rev-parse --show-toplevel ).strip
 cookie = File.read("#{root}/.env")
 url = "https://adventofcode.com/#{year}/day/#{day}/input"
