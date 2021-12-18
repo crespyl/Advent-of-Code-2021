@@ -93,7 +93,6 @@ def add_to_last(node, value)
 end
 
 def reduce(n)
-  n = n.clone
   loop do
     if can_explode?(n)
       n = explode(n)
@@ -105,16 +104,12 @@ def reduce(n)
   end
 end
 
-def deep_clone(n)
-  Marshal.load(Marshal.dump(n))
-end
-
 def can_explode?(n)
-  explode(deep_clone(n)) != n
+  explode(n) != n
 end
 
 def can_split?(n)
-  split(deep_clone(n)) != n
+  split(n) != n
 end
 
 def explode(n)
@@ -122,7 +117,7 @@ def explode(n)
 end
 # returns {}
 def apply_explode(n, depth=0)
-  n = deep_clone(n)
+  n = n.clone
   return {explode: false, going_left: 0, going_right: 0, value: n} unless n.is_a? Array
 
   if depth >= 4
