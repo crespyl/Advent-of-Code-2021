@@ -153,9 +153,9 @@ class Test < MiniTest::Test
     assert_equal(79, compute_p1(TEST_STR))
   end
 
-  # def test_p2
-  #   assert_equal(3621, compute_p2(TEST_STR))
-  # end
+  def test_p2
+    assert_equal(3621, compute_p2(TEST_STR))
+  end
 end
 
 def dist3d(a, b)
@@ -295,25 +295,18 @@ def compute_p1(input)
 
   known_beacons = scans[0].to_set
 
-  puts "triangulating..."
   triangulated_scans = scans.map { |id,scan| {id: id, triangles: beacon_triangles(scan)} }
-  puts "done triangulating"
-
   scanner_positions = { 0 => [0,0,0] }
   scanner_transforms = { 0 => [[0,1,2], [1,1,1]] }
 
-  puts "computing relative positions..."
   relative_positions_a = triangulated_scans.combination(2)
                          .filter { |a,b| triangles_overlap?(a[:triangles], b[:triangles]) }
                          .map { |a,b| [[a[:id], b[:id]], relative_scanner_position(a[:triangles], b[:triangles])] }
-  puts "..."
   relative_positions_b = triangulated_scans.combination(2)
                          .filter { |a,b| triangles_overlap?(a[:triangles], b[:triangles]) }
                          .map { |b,a| [[a[:id], b[:id]], relative_scanner_position(a[:triangles], b[:triangles])] }
   relative_positions = (relative_positions_a + relative_positions_b).to_h
-  puts "done computing relative positions"
 
-  puts "resolving relative positions"
 
   # resolve scans
   resolved_scans = {0 => scans[0].to_set}
@@ -333,9 +326,52 @@ def compute_p1(input)
   resolved_scans.values.inject(&:+).size
 end
 
-# def compute_p2(input)
+def compute_p2(input)
+  scans = input.split(/--- scanner (\d+) ---/)[1..].each_slice(2).map { |n, s|
+    scanner_idx = n.to_i
+    reports = s.lines.map(&:chomp).reject(&:empty?).map { _1.split(',').map(&:to_i) }
+    [scanner_idx, reports]
+  }.to_h
 
-# end
+  known_beacons = scans[0].to_set
+
+  triangulated_scans = scans.map { |id,scan| {id: id, triangles: beacon_triangles(scan)} }
+
+  scanner_positions = { 0 => [0,0,0] }
+  scanner_transforms = { 0 => [[0,1,2], [1,1,1]] }
+
+  relative_positions_a = triangulated_scans.combination(2)
+                           .filter { |a,b| triangles_overlap?(a[:triangles], b[:triangles]) }
+                           .map { |a,b| [[a[:id], b[:id]], relative_scanner_position(a[:triangles], b[:triangles])] }
+  relative_positions_b = triangulated_scans.combination(2)
+                           .filter { |a,b| triangles_overlap?(a[:triangles], b[:triangles]) }
+                           .map { |b,a| [[a[:id], b[:id]], relative_scanner_position(a[:triangles], b[:triangles])] }
+  relative_positions = (relative_positions_a + relative_positions_b).to_h
+
+  # resolve scans and positions
+  resolved_scans = {0 => scans[0].to_set}
+  (1...scans.size).each do |i|
+    location = i
+    scan = scans[i]
+    pos = [[0,0,0]]
+    path = find_path_to_0(relative_positions, i)[1..]
+
+    until path[0] == 0
+      scan = apply_relative_position(relative_positions[[path[0],location]], scan)
+      pos =  apply_relative_position(relative_positions[[path[0],location]], pos)
+      location = path.shift
+    end
+
+    resolved_scans[i] = apply_relative_position(relative_positions[[0,location]], scan)
+    scanner_positions[i] = apply_relative_position(relative_positions[[0,location]], pos).first
+  end
+
+  def manhattan(a,b)
+    a.zip(b).map { |i,j| (i-j).abs }.sum
+  end
+
+  scanner_positions.values.combination(2).map { |a,b| manhattan(a,b) }.max
+end
 
 if MiniTest.run
   puts 'Test case OK, running...'
