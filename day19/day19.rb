@@ -154,7 +154,7 @@ class Test < MiniTest::Test
   end
 
   # def test_p2
-  #   assert_equal(112, compute_p2(TEST_STR))
+  #   assert_equal(3621, compute_p2(TEST_STR))
   # end
 end
 
@@ -253,6 +253,39 @@ def resolve_relative_positions(a, b)
    pos_a[2] + pos_b[2] * inv_a[2]]
 end
 
+def find_path_to_0(relative_positions, origin, tgt=origin)
+  return [0] if origin == 0
+
+  graph = relative_positions.keys.reduce(Hash.new { Set.new }) { |g,k| g[k[0]] += [k[1]]; g }
+  find_path(graph, origin, 0)
+end
+
+def find_path(graph, from, to)
+  explored = Set.new([from])
+  open = [from]
+  path = {}
+  until open.empty?
+    current = open.shift
+    break if current == to
+
+    neighbors = graph[current].reject { explored.include?(_1) }
+    neighbors.each do |n|
+      explored += [n]
+      path[n] = current
+      open << n
+    end
+  end
+
+  ret = [to]
+
+  until to == from
+    to = path[to]
+    ret << to
+  end
+
+  ret.reverse
+end
+
 def compute_p1(input)
   scans = input.split(/--- scanner (\d+) ---/)[1..].each_slice(2).map { |n, s|
     scanner_idx = n.to_i
@@ -281,55 +314,23 @@ def compute_p1(input)
   puts "done computing relative positions"
 
   puts "resolving relative positions"
-  until scanner_positions.size == scans.size
-    relative_positions.filter { |k,v| k[0] == 0 }.each do |ids, pos_transform|
-      scanner_positions[ids[1]] = pos_transform.first
-      scanner_transforms[ids[1]] = pos_transform.last
-      puts "Found position for scanner #{ids[1]}: #{pos_transform.first}"
-      puts "                 transform #{ids[1]}: #{pos_transform.last}"
-    end
-
-    todo = relative_positions
-             .keys
-             .filter { |k| scanner_positions.keys.include?(k[0]) && ! scanner_positions.keys.include?(k[1]) }
-             .first
-    break if todo.nil?
-
-    known_scanner_id = todo[0]
-    unknown_scanner_id = todo[1]
-
-    known_pos = scanner_positions[known_scanner_id]
-    known_rot, known_inv = scanner_transforms[known_scanner_id]
-
-    unknown_pos = relative_positions[todo][0]
-    unknown_rot, unknown_inv = relative_positions[todo][1]
-
-    relative_positions[[0, unknown_scanner_id]] =
-      [
-        [
-          known_pos[0] + unknown_pos[known_rot[0]] * known_inv[known_rot[0]],
-          known_pos[1] + unknown_pos[known_rot[1]] * known_inv[known_rot[1]],
-          known_pos[2] + unknown_pos[known_rot[2]] * known_inv[known_rot[2]]
-        ],
-        [
-          [unknown_rot[known_rot[0]], unknown_rot[known_rot[1]], unknown_rot[known_rot[2]]],
-          [unknown_inv[0] * known_inv[0], unknown_inv[1] * known_inv[1], unknown_inv[2] * known_inv[2]]
-        ]
-      ]
-  end
-  puts "done resolving relative positions"
 
   # resolve scans
   resolved_scans = {0 => scans[0].to_set}
   (1...scans.size).each do |i|
-    resolved_scans[i] = apply_relative_position(relative_positions[[0,i]], scans[i]).to_set
+    location = i
+    scan = scans[i]
+    path = find_path_to_0(relative_positions, i)[1..]
+
+    until path[0] == 0
+      scan = apply_relative_position(relative_positions[[path[0],location]], scan)
+      location = path.shift
+    end
+
+    resolved_scans[i] = apply_relative_position(relative_positions[[0,location]], scan)
   end
 
-  all_resolved = resolved_scans.values.inject(&:+)
-
-  binding.pry
-
-  all_resolved.size - 12
+  resolved_scans.values.inject(&:+).size
 end
 
 # def compute_p2(input)
