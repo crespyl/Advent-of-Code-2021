@@ -158,6 +158,10 @@ class Test < MiniTest::Test
   end
 end
 
+def manhattan(a,b)
+    a.zip(b).map { |i,j| (i-j).abs }.sum
+end
+
 def dist3d(a, b)
   Math.sqrt((b[0] - a[0])**2 + (b[1] - a[1])**2 + (b[2] - a[2])**2)
 end
@@ -240,22 +244,7 @@ def triangles_overlap?(triangles_a, triangles_b)
   intersection.size >= 220
 end
 
-# takes position+transform pairs eg a=[pos, [rotation, inversion]]
-def resolve_relative_positions(a, b)
-  pos_a = a[0]
-  inv_a = a[1][1]
-
-  pos_b = b[0]
-  inv_b = b[1][1]
-
-  [pos_a[0] + pos_b[0] * inv_a[0],
-   pos_a[1] + pos_b[1] * inv_a[1],
-   pos_a[2] + pos_b[2] * inv_a[2]]
-end
-
-def find_path_to_0(relative_positions, origin, tgt=origin)
-  return [0] if origin == 0
-
+def find_path_to_0(relative_positions, origin)
   graph = relative_positions.keys.reduce(Hash.new { Set.new }) { |g,k| g[k[0]] += [k[1]]; g }
   find_path(graph, origin, 0)
 end
@@ -286,6 +275,17 @@ def find_path(graph, from, to)
   ret.reverse
 end
 
+def compute_relative_positions(scans)
+  triangulated_scans = scans.map { |id,scan| {id: id, triangles: beacon_triangles(scan)} }
+  relative_positions_a = triangulated_scans.combination(2)
+                         .filter { |a,b| triangles_overlap?(a[:triangles], b[:triangles]) }
+                         .map { |a,b| [[a[:id], b[:id]], relative_scanner_position(a[:triangles], b[:triangles])] }
+  relative_positions_b = triangulated_scans.combination(2)
+                         .filter { |a,b| triangles_overlap?(a[:triangles], b[:triangles]) }
+                         .map { |b,a| [[a[:id], b[:id]], relative_scanner_position(a[:triangles], b[:triangles])] }
+  (relative_positions_a + relative_positions_b).to_h
+end
+
 def compute_p1(input)
   scans = input.split(/--- scanner (\d+) ---/)[1..].each_slice(2).map { |n, s|
     scanner_idx = n.to_i
@@ -293,20 +293,7 @@ def compute_p1(input)
     [scanner_idx, reports]
   }.to_h
 
-  known_beacons = scans[0].to_set
-
-  triangulated_scans = scans.map { |id,scan| {id: id, triangles: beacon_triangles(scan)} }
-  scanner_positions = { 0 => [0,0,0] }
-  scanner_transforms = { 0 => [[0,1,2], [1,1,1]] }
-
-  relative_positions_a = triangulated_scans.combination(2)
-                         .filter { |a,b| triangles_overlap?(a[:triangles], b[:triangles]) }
-                         .map { |a,b| [[a[:id], b[:id]], relative_scanner_position(a[:triangles], b[:triangles])] }
-  relative_positions_b = triangulated_scans.combination(2)
-                         .filter { |a,b| triangles_overlap?(a[:triangles], b[:triangles]) }
-                         .map { |b,a| [[a[:id], b[:id]], relative_scanner_position(a[:triangles], b[:triangles])] }
-  relative_positions = (relative_positions_a + relative_positions_b).to_h
-
+  relative_positions = compute_relative_positions(scans)
 
   # resolve scans
   resolved_scans = {0 => scans[0].to_set}
@@ -333,20 +320,8 @@ def compute_p2(input)
     [scanner_idx, reports]
   }.to_h
 
-  known_beacons = scans[0].to_set
-
-  triangulated_scans = scans.map { |id,scan| {id: id, triangles: beacon_triangles(scan)} }
-
   scanner_positions = { 0 => [0,0,0] }
-  scanner_transforms = { 0 => [[0,1,2], [1,1,1]] }
-
-  relative_positions_a = triangulated_scans.combination(2)
-                           .filter { |a,b| triangles_overlap?(a[:triangles], b[:triangles]) }
-                           .map { |a,b| [[a[:id], b[:id]], relative_scanner_position(a[:triangles], b[:triangles])] }
-  relative_positions_b = triangulated_scans.combination(2)
-                           .filter { |a,b| triangles_overlap?(a[:triangles], b[:triangles]) }
-                           .map { |b,a| [[a[:id], b[:id]], relative_scanner_position(a[:triangles], b[:triangles])] }
-  relative_positions = (relative_positions_a + relative_positions_b).to_h
+  relative_positions = compute_relative_positions(scans)
 
   # resolve scans and positions
   resolved_scans = {0 => scans[0].to_set}
@@ -366,27 +341,53 @@ def compute_p2(input)
     scanner_positions[i] = apply_relative_position(relative_positions[[0,location]], pos).first
   end
 
-  def manhattan(a,b)
-    a.zip(b).map { |i,j| (i-j).abs }.sum
+  scanner_positions.values.combination(2).map { |a,b| manhattan(a,b) }.max
+end
+
+def compute_both(input)
+  scans = input.split(/--- scanner (\d+) ---/)[1..].each_slice(2).map { |n, s|
+    scanner_idx = n.to_i
+    reports = s.lines.map(&:chomp).reject(&:empty?).map { _1.split(',').map(&:to_i) }
+    [scanner_idx, reports]
+  }.to_h
+
+  scanner_positions = { 0 => [0,0,0] }
+  relative_positions = compute_relative_positions(scans)
+
+  # resolve scans and positions
+  resolved_scans = {0 => scans[0].to_set}
+  (1...scans.size).each do |i|
+    location = i
+    scan = scans[i]
+    pos = [[0,0,0]]
+    path = find_path_to_0(relative_positions, i)[1..]
+
+    until path[0] == 0
+      scan = apply_relative_position(relative_positions[[path[0],location]], scan)
+      pos =  apply_relative_position(relative_positions[[path[0],location]], pos)
+      location = path.shift
+    end
+
+    resolved_scans[i] = apply_relative_position(relative_positions[[0,location]], scan)
+    scanner_positions[i] = apply_relative_position(relative_positions[[0,location]], pos).first
   end
 
-  scanner_positions.values.combination(2).map { |a,b| manhattan(a,b) }.max
+  [resolved_scans.values.inject(&:+).size,
+   scanner_positions.values.combination(2).map { |a,b| manhattan(a,b) }.max]
 end
 
 if MiniTest.run
   puts 'Test case OK, running...'
 
   @input = File.read(ARGV[0] || File.join(File.dirname(__FILE__), 'input.txt'))
-  do_p2 = defined?(compute_p2)
 
   Benchmark.bm do |bm|
-    bm.report('Part 1:') { @p1 = compute_p1(@input) }
-    bm.report('Part 2:') { @p2 = compute_p2(@input) } if do_p2
+    bm.report('P1&P2') { @answers = compute_both(@input) }
   end
 
   puts "\nResults:"
-  puts 'Part 1: %i' % @p1
-  puts 'Part 2: %s' % @p2 if do_p2
+  puts 'Part 1: %i' % @answers[0]
+  puts 'Part 2: %i' % @answers[1]
 
 else
   puts 'Test case ERR'
